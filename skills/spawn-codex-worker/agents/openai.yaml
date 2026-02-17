@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spawn Codex Worker"
-  short_description: "Spawn Codex subagents via wrapper"
-  default_prompt: "Use $spawn-codex-worker to launch codex subagents for coding, testing, or review tasks."

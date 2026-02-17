@@ -1,8 +1,8 @@
 # Validation Guide
 
-## 1. Static Validation (Already Run)
+## 1. Static Validation
 
-You can run the all-in-one validation script:
+Run all static checks:
 
 ```bash
 ./scripts/validate-subagent-skill.sh
@@ -11,12 +11,9 @@ You can run the all-in-one validation script:
 ### Skill Structure Validation
 
 ```bash
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-codex-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-claude-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-codex-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-claude-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/claude-codex-subagent/skills/spawn-codex-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/claude-codex-subagent/skills/spawn-claude-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-coding-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-coding-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/spawn-coding-worker/skills/spawn-coding-worker
 ```
 
 Expected: all commands output `Skill is valid!`
@@ -24,8 +21,7 @@ Expected: all commands output `Skill is valid!`
 ### Script Syntax Validation
 
 ```bash
-bash -n ./scripts/spawn-codex-worker.sh
-bash -n ./scripts/spawn-claude-worker.sh
+bash -n ./scripts/spawn-coding-worker.sh
 ```
 
 Expected: no output and exit code `0`.
@@ -33,70 +29,90 @@ Expected: no output and exit code `0`.
 ### Help Page Validation
 
 ```bash
-./scripts/spawn-codex-worker.sh --help
-./scripts/spawn-claude-worker.sh --help
+./scripts/spawn-coding-worker.sh --help
 ```
 
-Expected: option help prints correctly, including `--task`, `--background`, `--result`, `--log`.
-For Claude wrapper defaults, help should include `--3rd-party` and `--no-3rd-party`.
+Expected: help includes `--cli`, `--task`, `--background`, `--result`, and `--log`.
 
-### Claude Dual-Entry Validation
+### Claude Skill Entry Validation
 
 In a Claude Code session, verify:
 
-- `/spawn-codex-worker` does not return Unknown skill
-- `/spawn-claude-worker` does not return Unknown skill
+- `/spawn-coding-worker` does not return Unknown skill
 
-## 2. Runtime Validation Matrix (Run in a Fresh Session)
+## 2. Runtime Validation Matrix
 
-Goal: cover all 2x2 combinations of main session and sub-agent type.
+Goal: cover both main-session types and all worker CLIs.
 
-### Case A: Main=Codex, Sub=Codex
+### Case A: Main=Codex, Worker=Codex
 
 ```bash
-./scripts/spawn-codex-worker.sh --name v-a-codex --type coder --task "Create tmp_validation/a.txt with one line: ok-a"
+./scripts/spawn-coding-worker.sh --cli codex --name v-a-codex --type coder --task "Create tmp_validation/a.txt with one line: ok-a"
 ```
 
-### Case B: Main=Codex, Sub=Claude
+### Case B: Main=Codex, Worker=Claude
 
 ```bash
-./scripts/spawn-claude-worker.sh --name v-b-claude --type coder --task "Create tmp_validation/b.txt with one line: ok-b"
+./scripts/spawn-coding-worker.sh --cli claude --name v-b-claude --type coder --task "Create tmp_validation/b.txt with one line: ok-b"
 ```
 
-If using third-party Claude API:
+### Case C: Main=Codex, Worker=Gemini
 
 ```bash
-./scripts/spawn-claude-worker.sh --name v-b-claude-3p --type coder --task "Create tmp_validation/b3p.txt with one line: ok-b3p" --3rd-party
+./scripts/spawn-coding-worker.sh --cli gemini --name v-c-gemini --type coder --task "Create tmp_validation/c.txt with one line: ok-c"
 ```
 
-### Case C: Main=Claude Code, Sub=Codex
-
-Run after triggering the skill in a Claude Code session:
+### Case D: Main=Codex, Worker=Kimi
 
 ```bash
-./scripts/spawn-codex-worker.sh --name v-c-codex --type coder --task "Create tmp_validation/c.txt with one line: ok-c"
+./scripts/spawn-coding-worker.sh --cli kimi --name v-d-kimi --type coder --task "Create tmp_validation/d.txt with one line: ok-d"
 ```
 
-### Case D: Main=Claude Code, Sub=Claude
+### Case E: Main=Claude Code, Worker=Codex
 
-Run after triggering the skill in a Claude Code session:
+Run after triggering the skill in Claude Code:
 
 ```bash
-env -u CLAUDECODE ./scripts/spawn-claude-worker.sh --name v-d-claude --type coder --task "Create tmp_validation/d.txt with one line: ok-d"
+./scripts/spawn-coding-worker.sh --cli codex --name v-e-codex --type coder --task "Create tmp_validation/e.txt with one line: ok-e"
+```
+
+### Case F: Main=Claude Code, Worker=Claude
+
+Run after triggering the skill in Claude Code:
+
+```bash
+env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name v-f-claude --type coder --task "Create tmp_validation/f.txt with one line: ok-f"
+```
+
+### Case G: Main=Claude Code, Worker=Gemini
+
+Run after triggering the skill in Claude Code:
+
+```bash
+./scripts/spawn-coding-worker.sh --cli gemini --name v-g-gemini --type coder --task "Create tmp_validation/g.txt with one line: ok-g"
+```
+
+### Case H: Main=Claude Code, Worker=Kimi
+
+Run after triggering the skill in Claude Code:
+
+```bash
+./scripts/spawn-coding-worker.sh --cli kimi --name v-h-kimi --type coder --task "Create tmp_validation/h.txt with one line: ok-h"
 ```
 
 ## 3. Pass Criteria
 
-- All 4 cases return successful exit codes.
-- `.claude-flow/results/` contains `v-a-codex.md`, `v-b-claude.md`, `v-c-codex.md`, `v-d-claude.md`.
-- `.claude-flow/logs/` contains corresponding log files (at minimum, execution records).
-- Target repository contains `tmp_validation/*.txt` files with expected content.
+- All cases return successful exit codes.
+- `.claude-flow/results/` contains one result file per case.
+- `.claude-flow/logs/` contains one log file per case.
+- `tmp_validation/*.txt` contains expected content.
 
 ## 4. Troubleshooting
 
-- `codex: command not found`: install or fix the Codex CLI.
-- `claude: command not found`: install or fix the Claude CLI.
-- `Error: --3rd-party env script not found`: ensure `scripts/cc_env.sh` is copied into the target repo, or pass `--3rd-party-env <path>`.
-- Claude permission interaction blocks execution: keep wrapper default `--dangerous`, or switch `--permission-mode` for your environment.
-- `Error: Claude Code cannot be launched inside another Claude Code session.`: run `env -u CLAUDECODE ./scripts/spawn-claude-worker.sh ...`.
-- `npx claude-flow agent spawn` fails: add `--no-spawn` to skip agent registration and validate the worker execution path first.
+- `codex: command not found`: install/fix the Codex CLI.
+- `claude: command not found`: install/fix the Claude CLI.
+- `gemini: command not found`: install/fix the Gemini CLI.
+- `kimi: command not found`: install/fix the Kimi CLI.
+- `Error: --3rd-party env script not found`: copy `scripts/cc_env.sh` or pass `--3rd-party-env <path>`.
+- `Error: Claude Code cannot be launched inside another Claude Code session.`: run `env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude ...`.
+- `npx claude-flow agent spawn` fails: add `--no-spawn` to validate worker execution path first.

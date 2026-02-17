@@ -2,139 +2,118 @@
 
 ## Goal
 
-From either main session type, run either sub-agent type:
+From either main session type, run any worker CLI with one command:
 
 - Main session: `codex` or `claude code`
-- Sub-agent: `codex` or `claude code`
+- Worker CLI: `codex` or `claude` or `gemini` or `kimi`
+- Wrapper: `scripts/spawn-coding-worker.sh`
 
 ## Prerequisites
 
-- `codex` CLI is installed (for Codex sub-agents)
-- `claude` CLI is installed (for Claude sub-agents)
+- Install `codex` CLI for Codex workers
+- Install `claude` CLI for Claude workers
+- Install `gemini` CLI for Gemini workers
+- Install `kimi` CLI for Kimi workers
 - The target repository allows local shell script execution
 
 ## Available Scripts
 
-- `scripts/spawn-codex-worker.sh`: start a Codex sub-agent
-- `scripts/spawn-claude-worker.sh`: start a Claude sub-agent
-- `scripts/cc_env.sh`: third-party Claude API env vars (loaded by default in Claude wrapper)
+- `scripts/spawn-coding-worker.sh`: start a worker with `--cli`
+- `scripts/cc_env.sh`: third-party Claude API env vars (loaded by default for `--cli claude`)
 
 ## Installation A: Global Codex Skills
 
 ```bash
 SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 mkdir -p "$SKILLS_DIR"
-cp -R /path/to/subagent-skill/skills/spawn-codex-worker "$SKILLS_DIR/spawn-codex-worker"
-cp -R /path/to/subagent-skill/skills/spawn-claude-worker "$SKILLS_DIR/spawn-claude-worker"
+cp -R /path/to/subagent-skill/skills/spawn-coding-worker "$SKILLS_DIR/spawn-coding-worker"
 ```
 
-After installation, in a Codex session you can use:
+After installation, in a Codex session use:
 
-- `$spawn-codex-worker` (Codex sub-agent)
-- `$spawn-claude-worker` (Claude sub-agent)
+- `$spawn-coding-worker`
 
-## Installation B: Claude Code Project Skills (Recommended)
+## Installation B: Claude Code Project Skills
 
-Run at the target repository root:
+Run at target repository root:
 
 ```bash
 mkdir -p .claude/skills
-cp -R /path/to/subagent-skill/skills/spawn-codex-worker .claude/skills/spawn-codex-worker
-cp -R /path/to/subagent-skill/skills/spawn-claude-worker .claude/skills/spawn-claude-worker
+cp -R /path/to/subagent-skill/skills/spawn-coding-worker .claude/skills/spawn-coding-worker
 ```
 
-After installation, in a Claude Code session you can use:
+After installation, in Claude Code use:
 
-- `/spawn-codex-worker` to run Codex sub-agent flow
-- `/spawn-claude-worker` to run Claude sub-agent flow
+- `/spawn-coding-worker`
 
 ## Installation C: Claude Code Plugin
 
-Plugin directory: `plugin/claude-codex-subagent/`
+Plugin directory: `plugin/spawn-coding-worker/`
 
 Session-scoped load example:
 
 ```bash
-claude --plugin-dir /path/to/subagent-skill/plugin/claude-codex-subagent
+claude --plugin-dir /path/to/subagent-skill/plugin/spawn-coding-worker
 ```
 
-After loading, both embedded skills are available in Claude Code.
-
-## Prepare Wrappers in Target Repository
+## Prepare Wrapper in Target Repository
 
 ```bash
 mkdir -p scripts
-cp .claude/skills/spawn-codex-worker/scripts/spawn-codex-worker.sh ./scripts/spawn-codex-worker.sh
-cp .claude/skills/spawn-claude-worker/scripts/spawn-claude-worker.sh ./scripts/spawn-claude-worker.sh
-cp .claude/skills/spawn-claude-worker/scripts/cc_env.sh ./scripts/cc_env.sh
-chmod +x ./scripts/spawn-codex-worker.sh ./scripts/spawn-claude-worker.sh
+cp .claude/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh ./scripts/spawn-coding-worker.sh
+cp .claude/skills/spawn-coding-worker/scripts/cc_env.sh ./scripts/cc_env.sh
+chmod +x ./scripts/spawn-coding-worker.sh
 ```
 
 If using plugin runtime, copy from:
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-codex-worker/scripts/`
-- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-claude-worker/scripts/`
-
-Copy the corresponding scripts. If using third-party Claude API, copy `cc_env.sh` as well.
+- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/`
 
 ## Common Invocation Templates
 
-Default permission mode (YOLO):
-
-- Codex wrapper defaults to `--dangerously-bypass-approvals-and-sandbox`
-- Claude wrapper defaults to `--permission-mode bypassPermissions` + `--dangerous` + `--3rd-party`
-- Optional overrides: Codex `--sandbox <mode>`, Claude `--no-3rd-party`, `--permission-mode`, `--no-dangerous`
-
-Codex sub-agent:
+Codex worker:
 
 ```bash
-./scripts/spawn-codex-worker.sh \
-  --name coder-codex \
-  --type coder \
-  --task "Implement feature A with tests."
+./scripts/spawn-coding-worker.sh --cli codex --name coder-codex --type coder --task "Implement feature A with tests."
 ```
 
-Claude sub-agent:
+Claude worker:
 
 ```bash
-env -u CLAUDECODE ./scripts/spawn-claude-worker.sh \
-  --name reviewer-claude \
-  --type reviewer \
-  --task "Review feature A for bugs and missing tests."
+env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name reviewer-claude --type reviewer --task "Review feature A for bugs and missing tests."
 ```
 
-Claude sub-agent (disable third-party env):
+Gemini worker:
 
 ```bash
-env -u CLAUDECODE ./scripts/spawn-claude-worker.sh \
-  --name reviewer-claude-local \
-  --type reviewer \
-  --task "Review feature A for bugs and missing tests." \
-  --no-3rd-party
+./scripts/spawn-coding-worker.sh --cli gemini --name tester-gemini --type tester --task "Write and run integration tests for feature A."
 ```
 
-When running from a Claude Code main session, unset `CLAUDECODE` as shown above to avoid nested-session rejection.
+Gemini no-permission default:
 
-Claude runtime state writes to this repository:
+- `--cli gemini` uses `gemini --approval-mode=yolo 'prompt'`
 
-- `.claude-flow/runtime/<worker-name>/home`
+Kimi worker:
+
+```bash
+./scripts/spawn-coding-worker.sh --cli kimi --name reviewer-kimi --type reviewer --task "Explain what this code does: $(cat main.py)"
+```
+
+Kimi auto-approve/default mode:
+
+- `--cli kimi` uses `kimi --print -p 'prompt'`
 
 Mixed parallel run:
 
 ```bash
-./scripts/spawn-codex-worker.sh --name codex-a --type coder --task "Implement module A." --background
-./scripts/spawn-claude-worker.sh --name claude-b --type coder --task "Implement module B." --background
+./scripts/spawn-coding-worker.sh --cli codex --name codex-a --type coder --task "Implement module A." --background
+./scripts/spawn-coding-worker.sh --cli kimi --name kimi-b --type coder --task "Implement module B." --background
 wait
 ```
-
-## Entry Mapping (Expected Behavior)
-
-- `/spawn-codex-worker` -> use `spawn-codex-worker` skill + `spawn-codex-worker.sh`
-- `/spawn-claude-worker` -> use `spawn-claude-worker` skill + `spawn-claude-worker.sh`
 
 ## Artifact Locations
 
 - Result file: `.claude-flow/results/<worker-name>.md`
 - Log file: `.claude-flow/logs/<worker-name>.log`
-- Codex runtime state: `.claude-flow/runtime/<worker-name>/codex-home` (does not write to `~/.codex`)
-- Claude runtime state: `.claude-flow/runtime/<worker-name>/home` (does not write to `~/.claude`)
+- Codex runtime state: `.claude-flow/runtime/<worker-name>/codex-home`
+- Claude/Gemini/Kimi runtime state: `.claude-flow/runtime/<worker-name>/home`
