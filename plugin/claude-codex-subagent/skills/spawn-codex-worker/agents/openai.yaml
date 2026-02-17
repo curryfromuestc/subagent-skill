@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spawn Mixed Subagents"
+  short_description: "Spawn Codex/Claude workers via wrappers"
+  default_prompt: "Use $spawn-codex-worker to run a mixed subagent plan with both codex and claude worker wrappers."
