@@ -1,8 +1,0 @@
-{
-  "name": "claude-codex-subagent",
-  "version": "0.1.0",
-  "description": "Provide a Claude Code skill that spawns both Codex and Claude subagents through wrapper scripts.",
-  "author": {
-    "name": "local"
-  }
-}

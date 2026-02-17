@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spawn Coding Worker"
+  short_description: "Spawn Claude/Codex/Gemini/Kimi subagents via one wrapper"
+  default_prompt: "Use $spawn-coding-worker to launch coding subagents with --cli claude|codex|gemini|kimi for coding, testing, or review tasks."

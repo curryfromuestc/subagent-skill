@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spawn Claude Worker"
-  short_description: "Spawn Claude subagents via wrapper"
-  default_prompt: "Use $spawn-claude-worker to launch claude subagents for coding, testing, or review tasks."
