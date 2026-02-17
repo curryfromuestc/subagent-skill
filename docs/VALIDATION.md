@@ -1,44 +1,55 @@
-# 验证文档
+# Validation Guide
 
-## 1. 静态验证（已执行）
+## 1. Static Validation (Already Run)
 
-可直接运行一键脚本：
+You can run the all-in-one validation script:
 
 ```bash
 ./scripts/validate-subagent-skill.sh
 ```
 
-### Skill 结构验证
+### Skill Structure Validation
 
 ```bash
 python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-codex-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-claude-worker
 python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-codex-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-claude-worker
 python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/claude-codex-subagent/skills/spawn-codex-worker
+python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/claude-codex-subagent/skills/spawn-claude-worker
 ```
 
-预期：全部输出 `Skill is valid!`
+Expected: all commands output `Skill is valid!`
 
-### 脚本语法验证
+### Script Syntax Validation
 
 ```bash
 bash -n ./scripts/spawn-codex-worker.sh
 bash -n ./scripts/spawn-claude-worker.sh
 ```
 
-预期：无输出且退出码为 0。
+Expected: no output and exit code `0`.
 
-### 脚本帮助页验证
+### Help Page Validation
 
 ```bash
 ./scripts/spawn-codex-worker.sh --help
 ./scripts/spawn-claude-worker.sh --help
 ```
 
-预期：正确打印参数说明，并包含 `--task`、`--background`、`--result`、`--log` 等选项。
+Expected: option help prints correctly, including `--task`, `--background`, `--result`, `--log`.
+For Claude wrapper defaults, help should include `--3rd-party` and `--no-3rd-party`.
 
-## 2. 运行时验证矩阵（你将在新会话执行）
+### Claude Dual-Entry Validation
 
-目标：覆盖主会话与 sub-agent 的 2x2 组合。
+In a Claude Code session, verify:
+
+- `/spawn-codex-worker` does not return Unknown skill
+- `/spawn-claude-worker` does not return Unknown skill
+
+## 2. Runtime Validation Matrix (Run in a Fresh Session)
+
+Goal: cover all 2x2 combinations of main session and sub-agent type.
 
 ### Case A: Main=Codex, Sub=Codex
 
@@ -52,9 +63,15 @@ bash -n ./scripts/spawn-claude-worker.sh
 ./scripts/spawn-claude-worker.sh --name v-b-claude --type coder --task "Create tmp_validation/b.txt with one line: ok-b"
 ```
 
+If using third-party Claude API:
+
+```bash
+./scripts/spawn-claude-worker.sh --name v-b-claude-3p --type coder --task "Create tmp_validation/b3p.txt with one line: ok-b3p" --3rd-party
+```
+
 ### Case C: Main=Claude Code, Sub=Codex
 
-在 Claude Code 会话中触发 skill 后执行：
+Run after triggering the skill in a Claude Code session:
 
 ```bash
 ./scripts/spawn-codex-worker.sh --name v-c-codex --type coder --task "Create tmp_validation/c.txt with one line: ok-c"
@@ -62,22 +79,24 @@ bash -n ./scripts/spawn-claude-worker.sh
 
 ### Case D: Main=Claude Code, Sub=Claude
 
-在 Claude Code 会话中触发 skill 后执行：
+Run after triggering the skill in a Claude Code session:
 
 ```bash
-./scripts/spawn-claude-worker.sh --name v-d-claude --type coder --task "Create tmp_validation/d.txt with one line: ok-d"
+env -u CLAUDECODE ./scripts/spawn-claude-worker.sh --name v-d-claude --type coder --task "Create tmp_validation/d.txt with one line: ok-d"
 ```
 
-## 3. 通过标准
+## 3. Pass Criteria
 
-- 4 个 case 都能返回成功退出码。
-- `.claude-flow/results/` 下存在 `v-a-codex.md`、`v-b-claude.md`、`v-c-codex.md`、`v-d-claude.md`。
-- `.claude-flow/logs/` 下存在同名日志文件（至少包含执行记录）。
-- 目标仓库出现对应 `tmp_validation/*.txt` 文件，内容与任务一致。
+- All 4 cases return successful exit codes.
+- `.claude-flow/results/` contains `v-a-codex.md`, `v-b-claude.md`, `v-c-codex.md`, `v-d-claude.md`.
+- `.claude-flow/logs/` contains corresponding log files (at minimum, execution records).
+- Target repository contains `tmp_validation/*.txt` files with expected content.
 
-## 4. 失败排查
+## 4. Troubleshooting
 
-- `codex: command not found`：安装或修复 Codex CLI。
-- `claude: command not found`：安装或修复 Claude CLI。
-- 权限交互阻塞（Claude）：在 wrapper 中保持默认 `--dangerous`，或根据环境切换 `--permission-mode`。
-- `npx claude-flow agent spawn` 失败：加 `--no-spawn` 先跳过 agent 注册，仅验证 worker 执行链路。
+- `codex: command not found`: install or fix the Codex CLI.
+- `claude: command not found`: install or fix the Claude CLI.
+- `Error: --3rd-party env script not found`: ensure `scripts/cc_env.sh` is copied into the target repo, or pass `--3rd-party-env <path>`.
+- Claude permission interaction blocks execution: keep wrapper default `--dangerous`, or switch `--permission-mode` for your environment.
+- `Error: Claude Code cannot be launched inside another Claude Code session.`: run `env -u CLAUDECODE ./scripts/spawn-claude-worker.sh ...`.
+- `npx claude-flow agent spawn` fails: add `--no-spawn` to skip agent registration and validate the worker execution path first.

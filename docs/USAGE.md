@@ -1,70 +1,91 @@
-# 使用文档
+# Usage Guide
 
-## 目标
+## Goal
 
-在以下任意主会话中，调用任意 sub-agent：
+From either main session type, run either sub-agent type:
 
-- Main session: `codex` 或 `claude code`
-- Sub-agent: `codex` 或 `claude code`
+- Main session: `codex` or `claude code`
+- Sub-agent: `codex` or `claude code`
 
-## 前置条件
+## Prerequisites
 
-- 本机安装 `codex` CLI（用于 Codex sub-agent）
-- 本机安装 `claude` CLI（用于 Claude sub-agent）
-- 目标仓库允许执行本地 shell 脚本
+- `codex` CLI is installed (for Codex sub-agents)
+- `claude` CLI is installed (for Claude sub-agents)
+- The target repository allows local shell script execution
 
-## 可用脚本
+## Available Scripts
 
-- `scripts/spawn-codex-worker.sh`：启动 Codex sub-agent
-- `scripts/spawn-claude-worker.sh`：启动 Claude sub-agent
+- `scripts/spawn-codex-worker.sh`: start a Codex sub-agent
+- `scripts/spawn-claude-worker.sh`: start a Claude sub-agent
+- `scripts/cc_env.sh`: third-party Claude API env vars (loaded by default in Claude wrapper)
 
-## 安装方式 A：Codex Skill（全局）
+## Installation A: Global Codex Skills
 
 ```bash
 SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 mkdir -p "$SKILLS_DIR"
 cp -R /path/to/subagent-skill/skills/spawn-codex-worker "$SKILLS_DIR/spawn-codex-worker"
+cp -R /path/to/subagent-skill/skills/spawn-claude-worker "$SKILLS_DIR/spawn-claude-worker"
 ```
 
-安装后在 Codex 会话中可通过 `$spawn-codex-worker` 触发 skill 逻辑。
+After installation, in a Codex session you can use:
 
-## 安装方式 B：Claude Code 项目级 Skill（推荐）
+- `$spawn-codex-worker` (Codex sub-agent)
+- `$spawn-claude-worker` (Claude sub-agent)
 
-在目标项目根目录执行：
+## Installation B: Claude Code Project Skills (Recommended)
+
+Run at the target repository root:
 
 ```bash
 mkdir -p .claude/skills
 cp -R /path/to/subagent-skill/skills/spawn-codex-worker .claude/skills/spawn-codex-worker
+cp -R /path/to/subagent-skill/skills/spawn-claude-worker .claude/skills/spawn-claude-worker
 ```
 
-安装后在 Claude Code 会话中可通过自然语言显式提及 `spawn-codex-worker` skill 触发；若你的环境支持技能斜杠入口，也可尝试 `/spawn-codex-worker`。
+After installation, in a Claude Code session you can use:
 
-## 安装方式 C：Claude Code Plugin
+- `/spawn-codex-worker` to run Codex sub-agent flow
+- `/spawn-claude-worker` to run Claude sub-agent flow
 
-插件目录：`plugin/claude-codex-subagent/`
+## Installation C: Claude Code Plugin
 
-会话级加载示例：
+Plugin directory: `plugin/claude-codex-subagent/`
+
+Session-scoped load example:
 
 ```bash
 claude --plugin-dir /path/to/subagent-skill/plugin/claude-codex-subagent
 ```
 
-加载后，插件内嵌 skill 可被 Claude Code 使用。
+After loading, both embedded skills are available in Claude Code.
 
-## 在目标仓库准备 wrapper
+## Prepare Wrappers in Target Repository
 
 ```bash
 mkdir -p scripts
 cp .claude/skills/spawn-codex-worker/scripts/spawn-codex-worker.sh ./scripts/spawn-codex-worker.sh
-cp .claude/skills/spawn-codex-worker/scripts/spawn-claude-worker.sh ./scripts/spawn-claude-worker.sh
+cp .claude/skills/spawn-claude-worker/scripts/spawn-claude-worker.sh ./scripts/spawn-claude-worker.sh
+cp .claude/skills/spawn-claude-worker/scripts/cc_env.sh ./scripts/cc_env.sh
 chmod +x ./scripts/spawn-codex-worker.sh ./scripts/spawn-claude-worker.sh
 ```
 
-若通过 plugin 运行，也可从 `${CLAUDE_PLUGIN_ROOT}/skills/spawn-codex-worker/scripts/` 复制两份脚本。
+If using plugin runtime, copy from:
 
-## 常用调用模板
+- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-codex-worker/scripts/`
+- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-claude-worker/scripts/`
 
-Codex sub-agent：
+Copy the corresponding scripts. If using third-party Claude API, copy `cc_env.sh` as well.
+
+## Common Invocation Templates
+
+Default permission mode (YOLO):
+
+- Codex wrapper defaults to `--dangerously-bypass-approvals-and-sandbox`
+- Claude wrapper defaults to `--permission-mode bypassPermissions` + `--dangerous` + `--3rd-party`
+- Optional overrides: Codex `--sandbox <mode>`, Claude `--no-3rd-party`, `--permission-mode`, `--no-dangerous`
+
+Codex sub-agent:
 
 ```bash
 ./scripts/spawn-codex-worker.sh \
@@ -73,16 +94,32 @@ Codex sub-agent：
   --task "Implement feature A with tests."
 ```
 
-Claude sub-agent：
+Claude sub-agent:
 
 ```bash
-./scripts/spawn-claude-worker.sh \
+env -u CLAUDECODE ./scripts/spawn-claude-worker.sh \
   --name reviewer-claude \
   --type reviewer \
   --task "Review feature A for bugs and missing tests."
 ```
 
-混合并行：
+Claude sub-agent (disable third-party env):
+
+```bash
+env -u CLAUDECODE ./scripts/spawn-claude-worker.sh \
+  --name reviewer-claude-local \
+  --type reviewer \
+  --task "Review feature A for bugs and missing tests." \
+  --no-3rd-party
+```
+
+When running from a Claude Code main session, unset `CLAUDECODE` as shown above to avoid nested-session rejection.
+
+Claude runtime state writes to this repository:
+
+- `.claude-flow/runtime/<worker-name>/home`
+
+Mixed parallel run:
 
 ```bash
 ./scripts/spawn-codex-worker.sh --name codex-a --type coder --task "Implement module A." --background
@@ -90,7 +127,14 @@ Claude sub-agent：
 wait
 ```
 
-## 产物位置
+## Entry Mapping (Expected Behavior)
 
-- 结果文件：`.claude-flow/results/<worker-name>.md`
-- 日志文件：`.claude-flow/logs/<worker-name>.log`
+- `/spawn-codex-worker` -> use `spawn-codex-worker` skill + `spawn-codex-worker.sh`
+- `/spawn-claude-worker` -> use `spawn-claude-worker` skill + `spawn-claude-worker.sh`
+
+## Artifact Locations
+
+- Result file: `.claude-flow/results/<worker-name>.md`
+- Log file: `.claude-flow/logs/<worker-name>.log`
+- Codex runtime state: `.claude-flow/runtime/<worker-name>/codex-home` (does not write to `~/.codex`)
+- Claude runtime state: `.claude-flow/runtime/<worker-name>/home` (does not write to `~/.claude`)

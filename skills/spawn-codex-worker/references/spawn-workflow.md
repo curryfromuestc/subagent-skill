@@ -1,11 +1,9 @@
-# Spawn Workflow Reference (Codex + Claude)
+# Spawn Codex Workflow Reference
 
 ## Preconditions
 
 - Run commands from the target repository root.
-- Install at least one runtime:
-  - `codex` CLI for Codex sub-agents
-  - `claude` CLI for Claude sub-agents
+- Install `codex` CLI.
 - Ensure wrapper scripts are executable.
 
 ## Wrapper Setup
@@ -15,29 +13,20 @@ Project skill source:
 ```bash
 mkdir -p scripts
 cp ".claude/skills/spawn-codex-worker/scripts/spawn-codex-worker.sh" ./scripts/spawn-codex-worker.sh
-cp ".claude/skills/spawn-codex-worker/scripts/spawn-claude-worker.sh" ./scripts/spawn-claude-worker.sh
-chmod +x ./scripts/spawn-codex-worker.sh ./scripts/spawn-claude-worker.sh
+chmod +x ./scripts/spawn-codex-worker.sh
 SPAWN_CODEX="./scripts/spawn-codex-worker.sh"
-SPAWN_CLAUDE="./scripts/spawn-claude-worker.sh"
 ```
 
 Plugin runtime source:
 
 ```bash
 cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-codex-worker/scripts/spawn-codex-worker.sh" ./scripts/spawn-codex-worker.sh
-cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-codex-worker/scripts/spawn-claude-worker.sh" ./scripts/spawn-claude-worker.sh
-chmod +x ./scripts/spawn-codex-worker.sh ./scripts/spawn-claude-worker.sh
+chmod +x ./scripts/spawn-codex-worker.sh
 ```
 
-## Runtime Selection
+If you need Claude workers, switch to `spawn-claude-worker` skill.
 
-- Use `SPAWN_CODEX` for `codex exec` workers.
-- Use `SPAWN_CLAUDE` for `claude -p` workers.
-- Both can coexist in one stage.
-
-## Single Worker Templates
-
-Codex worker:
+## Single Worker Template
 
 ```bash
 "$SPAWN_CODEX" \
@@ -46,16 +35,22 @@ Codex worker:
   --task "Implement src/shared_memory.py with ring-buffer semantics and lock safety."
 ```
 
-Claude worker:
+## Verified Default Smoke Test
 
 ```bash
-"$SPAWN_CLAUDE" \
-  --name review-claude \
-  --type reviewer \
-  --task "Review src/shared_memory.py for correctness, edge cases, and risks."
+"$SPAWN_CODEX" \
+  --name smoke-codex-joke \
+  --type coder \
+  --task "Tell a joke."
 ```
 
-## Mixed Parallel Template
+Default behavior already uses:
+
+- `--dangerously-bypass-approvals-and-sandbox`
+
+Use `--sandbox <mode>` only when you intentionally want sandboxed execution.
+
+## Parallel Codex Template
 
 ```bash
 "$SPAWN_CODEX" \
@@ -64,8 +59,8 @@ Claude worker:
   --task "Implement src/producer.py with full-buffer handling." \
   --background
 
-"$SPAWN_CLAUDE" \
-  --name consumer-claude \
+"$SPAWN_CODEX" \
+  --name consumer-codex \
   --type coder \
   --task "Implement src/consumer.py with empty-buffer handling and clear error semantics." \
   --background
@@ -80,16 +75,12 @@ wait
   --name tester-codex \
   --type tester \
   --task "Create and run tests for acceptance criteria."
-
-"$SPAWN_CLAUDE" \
-  --name reviewer-claude \
-  --type reviewer \
-  --task "Review implementation and test coverage; report risks and gaps."
 ```
 
 ## Artifact and Debug Conventions
 
 - Default logs: `.claude-flow/logs/<name>.log`
 - Default results: `.claude-flow/results/<name>.md`
+- Codex runtime state: `.claude-flow/runtime/<name>/codex-home`
 - Override with `--log` and `--result` for branch isolation.
 - Re-run failed work as a new fix task; avoid direct coordinator edits.

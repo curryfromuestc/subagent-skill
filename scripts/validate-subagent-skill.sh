@@ -9,8 +9,11 @@ cd "$ROOT_DIR"
 
 echo "[1/4] Validate skill structure"
 python3 "$VALIDATOR" skills/spawn-codex-worker
+python3 "$VALIDATOR" skills/spawn-claude-worker
 python3 "$VALIDATOR" .claude/skills/spawn-codex-worker
+python3 "$VALIDATOR" .claude/skills/spawn-claude-worker
 python3 "$VALIDATOR" plugin/claude-codex-subagent/skills/spawn-codex-worker
+python3 "$VALIDATOR" plugin/claude-codex-subagent/skills/spawn-claude-worker
 
 echo "[2/4] Validate shell syntax"
 bash -n scripts/spawn-codex-worker.sh
