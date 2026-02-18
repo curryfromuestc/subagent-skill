@@ -1,54 +1,57 @@
-# Spawn Coding Worker Skill/Plugin
+# spawn-coding-worker Plugin
 
-This repository provides one unified worker wrapper for mixed sub-agent orchestration from both **Codex** and **Claude Code** main sessions.
+Claude Code plugin package that embeds one mixed-subagent skill.
 
-- Worker CLIs: `codex`, `claude`, `gemini`, `kimi`
-- Single wrapper: `scripts/spawn-coding-worker.sh`
-- Single skill name: `spawn-coding-worker`
-- Shared source of truth: `skills/spawn-coding-worker/`
+## Included components
 
-## Key Directories
+- `.claude-plugin/plugin.json`
+- `commands/spawn-coding-worker.md` → slash command entry point
+- `skills/spawn-coding-worker/SKILL.md`
+- `skills/spawn-coding-worker/scripts/spawn-coding-worker.sh`
+- `skills/spawn-coding-worker/scripts/cc_env.sh`
+- `skills/spawn-coding-worker/references/spawn-workflow.md`
 
-- `scripts/`: repository-level wrapper scripts
-- `skills/spawn-coding-worker/`: Codex skill package
-- `plugin/spawn-coding-worker/`: Claude plugin package
-- `docs/USAGE.md`: installation and usage guide
-- `docs/VALIDATION.md`: validation guide and acceptance matrix
-- `docs/SHARED-ASSETS.md`: symlink/shared-file maintenance guide
+`commands/` and `skills/spawn-coding-worker/*` are symlinks to the shared source at:
 
-Claude integration is plugin-only in this repository (`plugin/spawn-coding-worker`); project-skill mode is no longer supported.
+- `../../skills/spawn-coding-worker/`
 
-## Sub-Agent Wrapper
-
-- `scripts/spawn-coding-worker.sh`
-- `scripts/cc_env.sh` (example env vars for third-party Claude API)
-
-Repository-level scripts and plugin skill files are symlinked to `skills/spawn-coding-worker/`.
-After shared-file edits, run:
+Refresh all links after editing shared source:
 
 ```bash
 ./scripts/sync-shared-assets.sh
 ```
 
-Default permission mode:
+## Purpose
 
-- Codex worker: `--dangerously-bypass-approvals-and-sandbox` (override with `--sandbox`)
-- Claude worker: `--permission-mode bypassPermissions` + `--dangerously-skip-permissions` + `--3rd-party`
-- Gemini worker: `gemini --approval-mode=yolo 'prompt'` via `--cli gemini`
-- Kimi worker: `kimi --print -p 'prompt'` via `--cli kimi`
+Enable Claude Code main sessions to orchestrate Claude, Codex, Gemini, or Kimi sub-agents through one entrypoint:
 
-Example:
+- `/spawn-coding-worker`
+
+Use `--cli` to select runtime (`claude`, `codex`, `gemini`, or `kimi`).
+
+## Installation (Claude Code plugin system)
+
+`claude plugin install` does not support local paths. Copy manually using `cp -rL` or `rsync -aL` to dereference symlinks:
 
 ```bash
-./scripts/spawn-coding-worker.sh --cli gemini --name demo-gemini --type coder --task "tell a joke"
-./scripts/spawn-coding-worker.sh --cli kimi --name demo-kimi --type reviewer --task "Explain what this code does: $(cat main.py)"
+PLUGIN_CACHE=~/.claude/plugins/cache/local/spawn-coding-worker/0.2.0
+rm -rf "$PLUGIN_CACHE"
+cp -rL /path/to/subagent-skill/plugin/spawn-coding-worker "$PLUGIN_CACHE"
 ```
 
-When launching Claude workers from inside a Claude Code main session, use `env -u CLAUDECODE`.
+Then add to `~/.claude/plugins/installed_plugins.json` and restart Claude Code.
 
-## Next Steps
+> **Important:** Never use plain `cp -r` — it copies symlinks as-is, resulting in an empty plugin that silently fails to load.
 
-1. Before every Codex/Claude install or update, run `./scripts/sync-shared-assets.sh` and `./scripts/validate-subagent-skill.sh`.
-2. Install `spawn-coding-worker` following `docs/USAGE.md` (`Installation A/B` + `Codex vs Claude Differences`).
-3. In Claude Code, verify `/spawn-coding-worker` is available.
-4. Run the validation flow from `docs/VALIDATION.md`.
+## Verified Smoke Commands
+
+Run from repository root after skill/plugin is loaded.
+
+```bash
+./scripts/spawn-coding-worker.sh --cli codex --name smoke-codex-joke --type coder --task "Tell a joke."
+./scripts/spawn-coding-worker.sh --cli gemini --name smoke-gemini-joke --type coder --task "Tell a joke."
+./scripts/spawn-coding-worker.sh --cli kimi --name smoke-kimi-explain --type reviewer --task "Explain what this code does: $(cat main.py)"
+env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name smoke-claude-joke --type coder --task "Tell a joke."
+```
+
+> **Note**: The `env -u CLAUDECODE` prefix is required when spawning Claude workers from within a Claude Code session. This prevents nested session conflicts.

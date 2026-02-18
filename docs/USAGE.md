@@ -52,34 +52,44 @@ After installation, in a Codex session use:
 
 - `$spawn-coding-worker`
 
-## Installation B: Claude Code Plugin
+## Installation B: Claude Code Plugin (user-scoped)
 
 Plugin directory: `plugin/spawn-coding-worker/`
 
-Session-scoped load example:
+`claude plugin install` does not support local paths. Install manually:
 
 ```bash
-claude --plugin-dir /path/to/subagent-skill/plugin/spawn-coding-worker
+PLUGIN_CACHE=~/.claude/plugins/cache/local/spawn-coding-worker/0.2.0
+rm -rf "$PLUGIN_CACHE"
+mkdir -p "$PLUGIN_CACHE"
+rsync -aL --delete /path/to/subagent-skill/plugin/spawn-coding-worker/ "$PLUGIN_CACHE/"
 ```
 
-After loading the plugin in Claude Code, use:
+Then register it in `~/.claude/plugins/installed_plugins.json` under key `"spawn-coding-worker@local"`:
 
-- `/spawn-coding-worker`
-
-If you need to copy the plugin to a standalone directory, use `rsync -L` so symlink targets are materialized:
-
-```bash
-rsync -aL --delete /path/to/subagent-skill/plugin/spawn-coding-worker/ /path/to/output/spawn-coding-worker/
-claude --plugin-dir /path/to/output/spawn-coding-worker
+```json
+{
+  "scope": "user",
+  "installPath": "/home/<user>/.claude/plugins/cache/local/spawn-coding-worker/0.2.0",
+  "version": "0.2.0",
+  "installedAt": "<ISO timestamp>",
+  "lastUpdated": "<ISO timestamp>"
+}
 ```
+
+Restart Claude Code. After loading the plugin, use:
+
+- `/spawn-coding-worker:spawn-coding-worker`
+
+> **Symlink note:** The plugin's `skills/` and `commands/` entries are symlinks pointing into the repository. Always use `rsync -aL --delete` when copying outside the repo — plain `cp -r` preserves broken symlinks and the plugin will silently load empty. `cp -rL` also fails with "same file" errors when run from the repo root.
 
 ## Codex vs Claude Differences
 
 - Codex has no plugin mode in this repo. Install as global skill under `${CODEX_HOME:-$HOME/.codex}/skills`.
-- Claude plugin mode: load `plugin/spawn-coding-worker` with `claude --plugin-dir ...`.
+- Claude plugin mode: install to `~/.claude/plugins/cache/local/` as described above.
 - Codex trigger name: `$spawn-coding-worker`.
-- Claude trigger name: `/spawn-coding-worker`.
-- Claude plugin packaging must use `rsync -aL --delete ...` when exporting outside this repo, because plugin skill files are symlinked.
+- Claude trigger name: `/spawn-coding-worker:spawn-coding-worker` (plugin namespace prefix required).
+- Claude plugin packaging must use `cp -rL` or `rsync -aL --delete` when exporting outside this repo, because plugin skill and command files are symlinked.
 - Claude worker spawned inside Claude Code must use `env -u CLAUDECODE` prefix.
 
 ## Prepare Wrapper in Target Repository

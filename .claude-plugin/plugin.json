@@ -1,0 +1,8 @@
+{
+  "name": "spawn-coding-worker",
+  "version": "0.2.0",
+  "description": "Provide a Claude Code skill that spawns Claude, Codex, Gemini, or Kimi workers through one wrapper script.",
+  "author": {
+    "name": "local"
+  }
+}
