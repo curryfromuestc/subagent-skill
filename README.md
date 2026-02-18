@@ -5,20 +5,30 @@ This repository provides one unified worker wrapper for mixed sub-agent orchestr
 - Worker CLIs: `codex`, `claude`, `gemini`, `kimi`
 - Single wrapper: `scripts/spawn-coding-worker.sh`
 - Single skill name: `spawn-coding-worker`
+- Shared source of truth: `skills/spawn-coding-worker/`
 
 ## Key Directories
 
 - `scripts/`: repository-level wrapper scripts
 - `skills/spawn-coding-worker/`: Codex skill package
-- `.claude/skills/spawn-coding-worker/`: Claude project skill package
 - `plugin/spawn-coding-worker/`: Claude plugin package
 - `docs/USAGE.md`: installation and usage guide
 - `docs/VALIDATION.md`: validation guide and acceptance matrix
+- `docs/SHARED-ASSETS.md`: symlink/shared-file maintenance guide
+
+Claude integration is plugin-only in this repository (`plugin/spawn-coding-worker`); project-skill mode is no longer supported.
 
 ## Sub-Agent Wrapper
 
 - `scripts/spawn-coding-worker.sh`
 - `scripts/cc_env.sh` (example env vars for third-party Claude API)
+
+Repository-level scripts and plugin skill files are symlinked to `skills/spawn-coding-worker/`.
+After shared-file edits, run:
+
+```bash
+./scripts/sync-shared-assets.sh
+```
 
 Default permission mode:
 
@@ -38,6 +48,7 @@ When launching Claude workers from inside a Claude Code main session, use `env -
 
 ## Next Steps
 
-1. Install `spawn-coding-worker` following `docs/USAGE.md`.
-2. In Claude Code, verify `/spawn-coding-worker` is available.
-3. Run the validation flow from `docs/VALIDATION.md`.
+1. Before every Codex/Claude install or update, run `./scripts/sync-shared-assets.sh` and `./scripts/validate-subagent-skill.sh`.
+2. Install `spawn-coding-worker` following `docs/USAGE.md` (`Installation A/B` + `Codex vs Claude Differences`).
+3. In Claude Code, verify `/spawn-coding-worker` is available.
+4. Run the validation flow from `docs/VALIDATION.md`.

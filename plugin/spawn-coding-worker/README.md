@@ -10,6 +10,10 @@ Claude Code plugin package that embeds one mixed-subagent skill.
 - `skills/spawn-coding-worker/scripts/cc_env.sh`
 - `skills/spawn-coding-worker/references/spawn-workflow.md`
 
+`skills/spawn-coding-worker/*` in this plugin directory are symlinked to the shared source at:
+
+- `../../skills/spawn-coding-worker/`
+
 ## Purpose
 
 Enable Claude Code main sessions to orchestrate Claude, Codex, Gemini, or Kimi sub-agents through one entrypoint:
@@ -17,6 +21,14 @@ Enable Claude Code main sessions to orchestrate Claude, Codex, Gemini, or Kimi s
 - `/spawn-coding-worker`
 
 Use `--cli` to select runtime (`claude`, `codex`, `gemini`, or `kimi`).
+
+## Standalone Copy
+
+When copying this plugin outside the repository, use `rsync -L` to copy symlink targets:
+
+```bash
+rsync -aL --delete /path/to/subagent-skill/plugin/spawn-coding-worker/ /path/to/output/spawn-coding-worker/
+```
 
 ## Verified Smoke Commands
 

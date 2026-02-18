@@ -2,6 +2,12 @@
 
 ## 1. Static Validation
 
+Refresh shared symlinks first:
+
+```bash
+./scripts/sync-shared-assets.sh
+```
+
 Run all static checks:
 
 ```bash
@@ -12,7 +18,6 @@ Run all static checks:
 
 ```bash
 python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/spawn-coding-worker
-python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./.claude/skills/spawn-coding-worker
 python3 /home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./plugin/spawn-coding-worker/skills/spawn-coding-worker
 ```
 
@@ -34,9 +39,9 @@ Expected: no output and exit code `0`.
 
 Expected: help includes `--cli`, `--task`, `--background`, `--result`, and `--log`.
 
-### Claude Skill Entry Validation
+### Claude Plugin Entry Validation
 
-In a Claude Code session, verify:
+In a Claude Code session with this plugin loaded, verify:
 
 - `/spawn-coding-worker` does not return Unknown skill
 
@@ -70,7 +75,7 @@ Goal: cover both main-session types and all worker CLIs.
 
 ### Case E: Main=Claude Code, Worker=Codex
 
-Run after triggering the skill in Claude Code:
+Run after triggering the plugin skill in Claude Code:
 
 ```bash
 ./scripts/spawn-coding-worker.sh --cli codex --name v-e-codex --type coder --task "Create tmp_validation/e.txt with one line: ok-e"
@@ -78,7 +83,7 @@ Run after triggering the skill in Claude Code:
 
 ### Case F: Main=Claude Code, Worker=Claude
 
-Run after triggering the skill in Claude Code:
+Run after triggering the plugin skill in Claude Code:
 
 ```bash
 env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name v-f-claude --type coder --task "Create tmp_validation/f.txt with one line: ok-f"
@@ -86,7 +91,7 @@ env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name v-f-claud
 
 ### Case G: Main=Claude Code, Worker=Gemini
 
-Run after triggering the skill in Claude Code:
+Run after triggering the plugin skill in Claude Code:
 
 ```bash
 ./scripts/spawn-coding-worker.sh --cli gemini --name v-g-gemini --type coder --task "Create tmp_validation/g.txt with one line: ok-g"
@@ -94,7 +99,7 @@ Run after triggering the skill in Claude Code:
 
 ### Case H: Main=Claude Code, Worker=Kimi
 
-Run after triggering the skill in Claude Code:
+Run after triggering the plugin skill in Claude Code:
 
 ```bash
 ./scripts/spawn-coding-worker.sh --cli kimi --name v-h-kimi --type coder --task "Create tmp_validation/h.txt with one line: ok-h"

@@ -7,9 +7,11 @@ VALIDATOR="/home/zyy/.codex/skills/.system/skill-creator/scripts/quick_validate.
 
 cd "$ROOT_DIR"
 
+echo "[0/4] Refresh shared symlinks"
+scripts/sync-shared-assets.sh >/dev/null
+
 echo "[1/4] Validate skill structure"
 python3 "$VALIDATOR" skills/spawn-coding-worker
-python3 "$VALIDATOR" .claude/skills/spawn-coding-worker
 python3 "$VALIDATOR" plugin/spawn-coding-worker/skills/spawn-coding-worker
 
 echo "[2/4] Validate shell syntax"

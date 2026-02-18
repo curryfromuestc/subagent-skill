@@ -28,10 +28,10 @@ Prefer a repository-local script:
 
 If missing, copy from skill resources:
 
-- `.claude/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (project skill)
+- `./skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (repository shared source)
 - `${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (plugin runtime)
 - `${CODEX_HOME:-$HOME/.codex}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (global Codex skill path)
-- If using Claude third-party API, copy `.claude/skills/spawn-coding-worker/scripts/cc_env.sh` to `./scripts/cc_env.sh`
+- If using Claude third-party API, copy `./skills/spawn-coding-worker/scripts/cc_env.sh` to `./scripts/cc_env.sh`
 - Run `chmod +x ./scripts/spawn-coding-worker.sh`
 
 ## Spawn with standard patterns
@@ -71,6 +71,23 @@ Kimi worker:
 ```bash
 ./scripts/spawn-coding-worker.sh --cli kimi --name reviewer-kimi --type reviewer --task "Explain what this code does: $(cat main.py)"
 ```
+
+## Important: Claude Code session nesting
+
+When spawning a Claude worker from within a Claude Code main session, you **must** prefix the command with `env -u CLAUDECODE`:
+
+```bash
+env -u CLAUDECODE ./scripts/spawn-coding-worker.sh --cli claude --name my-worker --task "..."
+```
+
+This unsets the `CLAUDECODE` environment variable to prevent nested session conflicts. Without it, Claude Code will reject the spawn with:
+
+```
+Error: Claude Code cannot be launched inside another Claude Code session.
+Nested sessions share runtime resources and will crash all active sessions.
+```
+
+This is not needed when spawning from Codex, Gemini, Kimi, or a regular shell.
 
 ## Default permission behavior
 

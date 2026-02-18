@@ -5,15 +5,16 @@
 - Run commands from the target repository root.
 - Install the CLI you want to use (`codex`, `claude`, `gemini`, or `kimi`).
 - Ensure wrapper scripts are executable.
+- **When spawning Claude from Claude Code**: prefix with `env -u CLAUDECODE` to avoid nested session errors.
 
 ## Wrapper Setup
 
-Project skill source:
+Repository shared source:
 
 ```bash
 mkdir -p scripts
-cp ".claude/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh" ./scripts/spawn-coding-worker.sh
-cp ".claude/skills/spawn-coding-worker/scripts/cc_env.sh" ./scripts/cc_env.sh
+cp "./skills/spawn-coding-worker/scripts/spawn-coding-worker.sh" ./scripts/spawn-coding-worker.sh
+cp "./skills/spawn-coding-worker/scripts/cc_env.sh" ./scripts/cc_env.sh
 chmod +x ./scripts/spawn-coding-worker.sh
 SPAWN_WORKER="./scripts/spawn-coding-worker.sh"
 ```
