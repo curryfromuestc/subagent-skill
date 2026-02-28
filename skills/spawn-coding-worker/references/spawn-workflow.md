@@ -9,22 +9,20 @@
 
 ## Wrapper Setup
 
-Repository shared source:
+If installed as a Claude Code plugin, use the plugin path directly:
+
+```bash
+SPAWN_WORKER="${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh"
+```
+
+To copy scripts into your project for standalone use:
 
 ```bash
 mkdir -p scripts
-cp "./skills/spawn-coding-worker/scripts/spawn-coding-worker.sh" ./scripts/spawn-coding-worker.sh
-cp "./skills/spawn-coding-worker/scripts/cc_env.sh" ./scripts/cc_env.sh
-chmod +x ./scripts/spawn-coding-worker.sh
-SPAWN_WORKER="./scripts/spawn-coding-worker.sh"
-```
-
-Plugin runtime source:
-
-```bash
 cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh" ./scripts/spawn-coding-worker.sh
 cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/cc_env.sh" ./scripts/cc_env.sh
 chmod +x ./scripts/spawn-coding-worker.sh
+SPAWN_WORKER="./scripts/spawn-coding-worker.sh"
 ```
 
 ## Single Worker Templates

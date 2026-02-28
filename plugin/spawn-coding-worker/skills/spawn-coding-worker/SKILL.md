@@ -1,1 +1,0 @@
-../../../../skills/spawn-coding-worker/SKILL.md

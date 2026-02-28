@@ -22,17 +22,23 @@ Avoid vague prompts. Make each worker prompt independently executable.
 
 ## Choose wrapper script paths
 
-Prefer a repository-local script:
+When installed as a Claude Code plugin, scripts are available at `${CLAUDE_PLUGIN_ROOT}`. Use this order:
 
-- `./scripts/spawn-coding-worker.sh`
+1. Plugin runtime (auto-available after `/plugin install`):
+   - `${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh`
+2. Repository-local script (if copied to your project):
+   - `./scripts/spawn-coding-worker.sh`
+3. Global Codex skill path:
+   - `${CODEX_HOME:-$HOME/.codex}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh`
 
-If missing, copy from skill resources:
+To copy scripts into your project for standalone use:
 
-- `./skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (repository shared source)
-- `${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (plugin runtime)
-- `${CODEX_HOME:-$HOME/.codex}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh` (global Codex skill path)
-- If using Claude third-party API, copy `./skills/spawn-coding-worker/scripts/cc_env.sh` to `./scripts/cc_env.sh`
-- Run `chmod +x ./scripts/spawn-coding-worker.sh`
+```bash
+mkdir -p scripts
+cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/spawn-coding-worker.sh" ./scripts/spawn-coding-worker.sh
+cp "${CLAUDE_PLUGIN_ROOT}/skills/spawn-coding-worker/scripts/cc_env.sh" ./scripts/cc_env.sh
+chmod +x ./scripts/spawn-coding-worker.sh
+```
 
 ## Spawn with standard patterns
 

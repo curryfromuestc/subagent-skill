@@ -1,8 +1,11 @@
 {
   "name": "spawn-coding-worker",
   "version": "0.2.0",
-  "description": "Provide a Claude Code skill that spawns Claude, Codex, Gemini, or Kimi workers through one wrapper script.",
+  "description": "Spawn coding subagents (Claude, Codex, Gemini, Kimi) from Claude Code sessions through one unified wrapper.",
   "author": {
-    "name": "local"
-  }
+    "name": "curryfromuestc"
+  },
+  "repository": "https://github.com/curryfromuestc/subagent-skill",
+  "license": "MIT",
+  "keywords": ["subagent", "orchestration", "codex", "gemini", "kimi", "worker"]
 }
