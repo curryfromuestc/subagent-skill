@@ -16,10 +16,13 @@ From either main session type, run any worker CLI with one command:
 - Install `kimi` CLI for Kimi workers
 - The target repository allows local shell script execution
 
-## Installation A: Claude Code Plugin (one-click)
+## Installation A: Claude Code Plugin
+
+Add the marketplace and install:
 
 ```
-/plugin install github:curryfromuestc/subagent-skill
+/plugin marketplace add git@github.com:curryfromuestc/subagent-skill.git
+/plugin install spawn-coding-worker@curryfromuestc
 ```
 
 After installation, use `/spawn-coding-worker` in any Claude Code session. No manual file copying required.

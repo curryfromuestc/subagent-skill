@@ -1,0 +1,15 @@
+{
+  "name": "curryfromuestc",
+  "owner": {
+    "name": "curryfromuestc"
+  },
+  "plugins": [
+    {
+      "name": "spawn-coding-worker",
+      "source": "./",
+      "description": "Spawn coding subagents (Claude, Codex, Gemini, Kimi) from Claude Code sessions through one unified wrapper.",
+      "version": "0.2.0",
+      "keywords": ["subagent", "orchestration", "codex", "gemini", "kimi", "worker"]
+    }
+  ]
+}

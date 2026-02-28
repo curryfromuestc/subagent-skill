@@ -4,10 +4,11 @@ Claude Code plugin that spawns Claude, Codex, Gemini, or Kimi coding subagents t
 
 ## Installation
 
-### Claude Code (one-click)
+### Claude Code
 
 ```
-/plugin install github:curryfromuestc/subagent-skill
+/plugin marketplace add git@github.com:curryfromuestc/subagent-skill.git
+/plugin install spawn-coding-worker@curryfromuestc
 ```
 
 After installation, use `/spawn-coding-worker` in any Claude Code session.
@@ -63,6 +64,7 @@ Kimi worker:
 
 ```
 .claude-plugin/plugin.json                          Plugin manifest
+.claude-plugin/marketplace.json                     Marketplace catalog
 commands/spawn-coding-worker.md                     Slash command entry point
 skills/spawn-coding-worker/SKILL.md                 Skill definition
 skills/spawn-coding-worker/scripts/spawn-coding-worker.sh   Core wrapper script
